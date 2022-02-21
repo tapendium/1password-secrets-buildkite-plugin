@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -eo pipefail
+
+CWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+. "$CWD/../lib/shared.sh"
+
+# Generate session token if not currently set
+if [ -z "$OP_TOKEN" ]; then
+  $(generateSessionToken)
+fi
+
+while IFS='=' read -r name _; do
+  if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_) ]]; then
+    echo "$name"
+  fi
+done < <(env | sort)

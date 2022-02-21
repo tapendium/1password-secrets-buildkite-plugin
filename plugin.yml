@@ -1,0 +1,21 @@
+name: 1Password
+description: Read secrets from 1Password
+author: https://tapendium.com
+requirements:
+  - expect
+  - op
+configuration:
+  properties:
+    env:
+      type: object
+      properties:
+        item:
+          type: string
+        field:
+          type: string
+      required:
+        - item
+        - field
+  required:
+    - env
+  additionalProperties: false
