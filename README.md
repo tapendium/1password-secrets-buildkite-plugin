@@ -1,14 +1,14 @@
 # 1Password Secrets Buildkite Plugin
 
-A [Buildkite Plugin](https://buildkite.com/docs/agent/v3/plugins) to read secrets from 1Password vault using the 1Password CLI.
+A [Buildkite Plugin](https://buildkite.com/docs/agent/v3/plugins) to read secrets from 1Password using the 1Password CLI.
 
 ## Example
 
 ```yml
 steps:
-  - command: echo "Skips checking out Git project in checkout" 
+  - command: 'echo \$SECRET_A' 
     plugins:
-      - tapendium/1password#0.0.1:
+      - tapendium/1password-secrets:
           env:
             SECRET_A:
               secret-uuid: "secret-a-item-uuid"

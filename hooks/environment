@@ -2,17 +2,44 @@
 
 set -eo pipefail
 
-CWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# shellcheck source=lib/shared.sh
 . "$CWD/../lib/shared.sh"
 
 # Generate session token if not currently set
-if [ -z "$OP_TOKEN" ]; then
-  $(generateSessionToken)
+if [ -z "$OP_SESSION_TOKEN" ]; then
+	echo "Generating 1Password session token"
+	generateSessionToken
 fi
 
+load_secret_into_env() {
+	local exportName=$1
+	local secretUuid=$2
+	local secretField=$3
+	local secretValue
+
+	echo "Reading item \"$secretUuid\" field \"$secretField\" from 1Password into environment variable $exportName"
+
+	secretValue=$(getField "$secretUuid" "$secretField")
+	export "$exportName"="$secretValue"
+}
+
 while IFS='=' read -r name _; do
-  if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_) ]]; then
-    echo "$name"
-  fi
+	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
+		if [[ $name =~ (_SECRET_UUID)$ ]]; then
+			# get the export name from the key, e.g.
+			# env:
+			#   KEY_NAME:
+			#     secret-uuid: 'my-secret-uuid'
+			exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//' | sed 's/_SECRET_UUID$//')
+			secretUuid=${!name}
+			secretFieldName="BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_${exportName}_FIELD"
+			secretField=${!secretFieldName}
+		elif [[ $name =~ (_FIELD)$ ]]; then
+			# ignore this
+			continue
+		fi
+		load_secret_into_env "$exportName" "$secretUuid" "$secretField"
+	fi
 done < <(env | sort)
