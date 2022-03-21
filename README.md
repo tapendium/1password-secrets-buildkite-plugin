@@ -17,3 +17,7 @@ steps:
               secret-uuid: "secret-b-item-uuid"
               field: "item-secret-in-password-field" 
 ```
+
+## License
+
+[MIT](https://opensource.org/licenses/MIT)
