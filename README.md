@@ -18,6 +18,14 @@ steps:
               field: "item-secret-in-password-field" 
 ```
 
+## Developing
+
+To run the tests:
+
+```bash
+docker-compose run --rm tests
+```
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
