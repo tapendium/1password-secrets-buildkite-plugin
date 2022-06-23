@@ -2,6 +2,16 @@
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Expand variable if it starts with $ sign
+function expandVariable() {
+	if [[ "${1::1}" == "\$" ]]; then
+		local varName=${1:1}
+		echo ${!varName}
+	else
+		echo ${1}
+	fi
+}
+
 function getField() {
 	local opItem=$1
 	local opField=$2

@@ -16,7 +16,7 @@ fi
 load_secret_into_env() {
 	local exportName=$1
 	local secretUuid=$2
-	local secretField=$3
+	local secretField=$(expandVariable $3)
 	local secretValue
 
 	echo "Reading item \"$secretUuid\" field \"$secretField\" from 1Password into environment variable $exportName"
