@@ -6,9 +6,9 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 function expandVariable() {
 	if [[ "${1::1}" == "\$" ]]; then
 		local varName=${1:1}
-		echo ${!varName}
+		echo "${!varName}"
 	else
-		echo ${1}
+		echo "${1}"
 	fi
 }
 
@@ -49,4 +49,31 @@ function generateSessionToken() {
 	}
 
 	export OP_SESSION_TOKEN=$opToken
+}
+
+# retry <number-of-retries> <jitter-factor> <command>
+function retry {
+	local maxAttempts=$1
+	shift
+	local jitterFactor=$1
+	shift
+	local attempt=1
+
+	while true; do
+		"$@" && break || {
+			if [[ $attempt -lt $maxAttempts ]]; then
+				backOff=$(echo "1*1.5^$attempt" | bc)
+				maxJitter=$(echo "$jitterFactor * $backOff" | bc)
+				minJitter=$(echo "$maxJitter * -1" | bc)
+				jitter=$(echo "scale=2; ($RANDOM / 32768) * ($maxJitter - $minJitter) + $minJitter" | bc)
+				delay=$(echo "$backOff + $jitter" | bc)
+				echo "Attempt $attempt/$maxAttempts failed. Retrying in ${delay}s"
+				((attempt++))
+				sleep "$delay"
+			else
+				echo 1>&2 "The command has failed after $maxAttempts attempts."
+				exit 1
+			fi
+		}
+	done
 }
