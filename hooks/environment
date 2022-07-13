@@ -10,7 +10,8 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Generate session token if not currently set
 if [ -z "$OP_SESSION_TOKEN" ]; then
 	echo "Generating 1Password session token"
-	generateSessionToken
+    # Attempt session token generation up to 3 times with a jitter factor of 0.3
+	retry 3 0.3 generateSessionToken
 fi
 
 load_secret_into_env() {
