@@ -33,7 +33,7 @@ function generateSessionToken() {
 	script="
       set timeout 30 
       log_user 0
-      spawn op signin --raw ${url} ${email} ${secretKey}
+      spawn op signin ${url} ${email} ${secretKey} --raw
       expect -exact \"Enter the password for ${email} at ${url}: \" 
       send -- "${password}\\r"
       expect {
@@ -43,10 +43,11 @@ function generateSessionToken() {
       puts \$result
     "
 	opToken=$(expect -c "${script}")
-	[ -z "$opToken" ] && {
+	if [ -z "$opToken" ] || [[ "$opToken" =~ .*"ERROR".* ]]; then
 		echo "Unable to generate valid 1Password token" 1>&2
-		exit 1
-	}
+		(exit 1)
+		return
+	fi
 
 	export OP_SESSION_TOKEN=$opToken
 }
