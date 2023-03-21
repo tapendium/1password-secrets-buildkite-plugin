@@ -2,10 +2,18 @@ name: 1Password
 description: Read secrets from 1Password
 author: https://tapendium.com
 requirements:
-  - expect
   - op
 configuration:
   properties:
+    debug:
+      type: string
+      description: Enable debug mode
+    connect_host:
+      type: string
+      description: 1Password Connect Server host
+    connect_token:
+      type: string
+      description: 1Password Connect Server API token
     env:
       type: object
       properties:
@@ -18,4 +26,6 @@ configuration:
         - field
   required:
     - env
+    - connect_host
+    - connect_token
   additionalProperties: false

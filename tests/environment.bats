@@ -7,6 +7,8 @@ environment_hook="$PWD/hooks/environment"
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
 export OP_SESSION_TOKEN="token"
+export OP_CONNECT_HOST="connecthost"
+export OP_CONNECT_TOKEN="connecttoken"
 prefix="BUILDKITE_PLUGIN_1PASSWORD_SECRETS"
 
 function op() {
@@ -17,6 +19,24 @@ function op() {
 	run "$environment_hook"
 
 	assert_success
+}
+
+@test "Fails when OP host details are missing" {
+	unset OP_CONNECT_HOST
+
+	run "$environment_hook"
+
+	assert_failure
+	assert_output --partial "Missing OP_CONNECT_HOST"
+}
+
+@test "Fails when OP token is missing" {
+	unset OP_CONNECT_TOKEN
+
+	run "$environment_hook"
+
+	assert_failure
+	assert_output --partial "Missing OP_CONNECT_TOKEN"
 }
 
 @test "Parses out variable names for 1 secret" {

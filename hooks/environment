@@ -7,13 +7,6 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/shared.sh
 . "$CWD/../lib/shared.sh"
 
-# Generate session token if not currently set
-if [ -z "$OP_SESSION_TOKEN" ]; then
-	echo "Generating 1Password session token"
-    # Attempt session token generation up to 3 times with a jitter factor of 0.3
-	retry 3 0.3 generateSessionToken
-fi
-
 load_secret_into_env() {
 	local exportName=$1
 	local secretUuid=$2
@@ -25,6 +18,27 @@ load_secret_into_env() {
 	secretValue=$(getField "$secretUuid" "$secretField")
 	export "$exportName"="$secretValue"
 }
+
+if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_DEBUG:-false}" =~ (true|on|1) ]]; then
+	echo "~~~ :hammer: Enabling debug mode"
+	set -x
+fi
+
+connectHost="${OP_CONNECT_HOST:-${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_HOST:-}}"
+connectToken="${OP_CONNECT_TOKEN:-${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN:-}}"
+
+if [ -z "${connectHost}" ]; then
+	echo >&2 "Missing OP_CONNECT_HOST or connect_host"
+	exit 22
+fi
+
+if [ -z "${connectToken}" ]; then
+	echo >&2 "Missing OP_CONNECT_TOKEN or connect_token"
+	exit 22
+fi
+
+export OP_CONNECT_HOST="${connectHost}"
+export OP_CONNECT_TOKEN="${connectToken}"
 
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then

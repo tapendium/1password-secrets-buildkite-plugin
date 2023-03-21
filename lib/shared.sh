@@ -24,32 +24,15 @@ function getField() {
 	echo "$result"
 }
 
-function generateSessionToken() {
-	local opToken
-	url=$OP_ACCOUNT_URL
-	email=$OP_EMAIL
-	secretKey=$OP_SECRET_KEY
-	password=$OP_PASSWORD
-	script="
-      set timeout 30 
-      log_user 0
-      spawn op signin ${url} ${email} ${secretKey} --raw
-      expect -exact \"Enter the password for ${email} at ${url}: \" 
-      send -- "${password}\\r"
-      expect {
-        -re \"${password}\\r\\n(.+)\\r\\n\" { set result [ string trim \$expect_out(1,string) ] }
-      }
-      expect *
-      puts \$result
-    "
-	opToken=$(expect -c "${script}")
-	if [ -z "$opToken" ] || [[ "$opToken" =~ .*"ERROR".* ]]; then
-		echo "Unable to generate valid 1Password token" 1>&2
-		(exit 1)
-		return
-	fi
+# Use op read to get field values https://developer.1password.com/docs/cli/reference/commands/read
+function readField() {
+	local opRef=$1
 
-	export OP_SESSION_TOKEN=$opToken
+	result=$(op read "${opRef}" --force --no-newline)
+	[ -z "$result" ] && {
+		echo "Unable to read secret reference \"${opRef}\" from 1Password" 1>&2
+		exit 1
+	}
 }
 
 # retry <number-of-retries> <jitter-factor> <command>
