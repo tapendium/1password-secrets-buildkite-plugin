@@ -9,13 +9,14 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 load_secret_into_env() {
 	local exportName=$1
-	local secretUuid=$2
-	local secretField=$(expandVariable $3)
+	local secretRef=$(expandVariable $2)
 	local secretValue
 
-	echo "Reading item \"$secretUuid\" field \"$secretField\" from 1Password into environment variable $exportName"
+	echo "Reading secret at reference \"${secretRef}\" from 1Password into environment variable $exportName"
 
-	secretValue=$(getField "$secretUuid" "$secretField")
+    # Read value from vault using 1Password CLI
+	secretValue=$(readField "${secretRef}")
+
 	export "$exportName"="$secretValue"
 }
 
@@ -42,19 +43,10 @@ export OP_CONNECT_TOKEN="${connectToken}"
 
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
-		if [[ $name =~ (_SECRET_UUID)$ ]]; then
-			# get the export name from the key, e.g.
-			# env:
-			#   KEY_NAME:
-			#     secret-uuid: 'my-secret-uuid'
-			exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//' | sed 's/_SECRET_UUID$//')
-			secretUuid=${!name}
-			secretFieldName="BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_${exportName}_FIELD"
-			secretField=${!secretFieldName}
-		elif [[ $name =~ (_FIELD)$ ]]; then
-			# ignore this
-			continue
-		fi
-		load_secret_into_env "$exportName" "$secretUuid" "$secretField"
+      # Read variable name for exported environment variable
+      exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
+      # Read reference to secret value
+      secretReference=${!name}
+      load_secret_into_env "$exportName" "$secretReference"
 	fi
 done < <(env | sort)

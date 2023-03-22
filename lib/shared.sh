@@ -12,20 +12,8 @@ function expandVariable() {
 	fi
 }
 
-function getField() {
-	local opItem=$1
-	local opField=$2
-
-	result=$(op get item "$opItem" --fields "$opField" --session "$OP_SESSION_TOKEN")
-	[ -z "$result" ] && {
-		echo "Unable to get item \"$opItem\" field \"$opField\" from 1Password" 1>&2
-		exit 1
-	}
-	echo "$result"
-}
-
 # Use op read to get field values https://developer.1password.com/docs/cli/reference/commands/read
-function readField() {
+function readField {
 	local opRef=$1
 
 	result=$(op read "${opRef}" --force --no-newline)
@@ -33,6 +21,7 @@ function readField() {
 		echo "Unable to read secret reference \"${opRef}\" from 1Password" 1>&2
 		exit 1
 	}
+    echo "${result}"
 }
 
 # retry <number-of-retries> <jitter-factor> <command>

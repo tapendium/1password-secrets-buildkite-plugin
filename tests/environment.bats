@@ -7,7 +7,7 @@ environment_hook="$PWD/hooks/environment"
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
 
 export OP_SESSION_TOKEN="token"
-export OP_CONNECT_HOST="connecthost"
+export OP_CONNECT_HOST="http://connecthost"
 export OP_CONNECT_TOKEN="connecttoken"
 prefix="BUILDKITE_PLUGIN_1PASSWORD_SECRETS"
 
@@ -40,40 +40,37 @@ function op() {
 }
 
 @test "Parses out variable names for 1 secret" {
-	export ${prefix}_ENV_SECRET_A_SECRET_UUID="secretAUuid"
-	export ${prefix}_ENV_SECRET_A_FIELD="secretAField"
+	export ${prefix}_ENV_SECRET_A="op://vault/item/field"
 
 	export -f op
 
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading item \"secretAUuid\" field \"secretAField\" from 1Password into environment variable SECRET_A"
+	assert_output --partial "Reading secret at reference \"op://vault/item/field\" from 1Password into environment variable $exportName"
 }
 
 @test "Parses out variable names for multiple secrets" {
-	export ${prefix}_ENV_SECRET_A_SECRET_UUID="secretAUuid"
-	export ${prefix}_ENV_SECRET_A_FIELD="secretAField"
-	export ${prefix}_ENV_SECRET_B_SECRET_UUID="secretBUuid"
-	export ${prefix}_ENV_SECRET_B_FIELD="secretBField"
+	export ${prefix}_ENV_SECRET_A="op://vault/a/field"
+	export ${prefix}_ENV_SECRET_B="op://vault/b/field"
+
 	export -f op
 
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading item \"secretAUuid\" field \"secretAField\" from 1Password into environment variable SECRET_A"
-	assert_output --partial "Reading item \"secretBUuid\" field \"secretBField\" from 1Password into environment variable SECRET_B"
+	assert_output --partial "Reading secret at reference \"op://vault/a/field\" from 1Password into environment variable SECRET_A"
+	assert_output --partial "Reading secret at reference \"op://vault/b/field\" from 1Password into environment variable SECRET_B"
 }
 
 @test "Expands out environment variable in field name" {
-	export ${prefix}_ENV_SECRET_A_SECRET_UUID="secretAUuid"
-	export ${prefix}_ENV_SECRET_A_FIELD="\$ENV_FIELD_NAME"
-	export ENV_FIELD_NAME=secretAField
+	export ${prefix}_ENV_SECRET_A="\$ENV_FIELD_NAME"
+	export ENV_FIELD_NAME=op://vault/item/field
 
 	export -f op
 
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading item \"secretAUuid\" field \"secretAField\" from 1Password into environment variable SECRET_A"
+	assert_output --partial "Reading secret at reference \"op://vault/item/field\" from 1Password into environment variable SECRET_A"
 }

@@ -1,21 +1,20 @@
 # 1Password Secrets Buildkite Plugin
 
-A [Buildkite Plugin](https://buildkite.com/docs/agent/v3/plugins) to read secrets from 1Password using the 1Password CLI.
+A [Buildkite Plugin](https://buildkite.com/docs/agent/v3/plugins) to read secrets from 1Password using the 1Password CLI. 
+
+It uses [1Password Connect Server](https://developer.1password.com/docs/ci-cd/) and requires the host details and an access token to access the instance.
 
 ## Example
 
 ```yml
 steps:
-  - command: 'echo \$SECRET_A' 
+  - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets:
+      - tapendium/1password-secrets#v2.0.0:
+          connect_host: http://secrets.services.local
           env:
-            SECRET_A:
-              secret-uuid: "secret-a-item-uuid"
-              field: "item-secret-in-this-field" 
-            SECRET_B:
-              secret-uuid: "secret-b-item-uuid"
-              field: "item-secret-in-password-field" 
+            SECRET_A: "op://<vault>/<item>[/<section>]/<field>"
+            SECRET_B: "op://production/database/password"
 ```
 
 ## Developing
