@@ -16,7 +16,7 @@ load_secret_into_env() {
 	local secretRef=$(expandVariable "${2}")
 	local secretValue
 
-	echo "Reading secret at reference \"${secretRef}\" from 1Password into environment variable $exportName"
+	echo "~~~ :unlock: Reading secret at reference \"${secretRef}\" from 1Password into environment variable $exportName"
 
 	# Read value from vault using 1Password CLI
 	secretValue=$(readField "${secretRef}")
