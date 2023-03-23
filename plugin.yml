@@ -14,6 +14,9 @@ configuration:
     connect_token:
       type: string
       description: 1Password Connect Server API token
+    bin:
+      type: string
+      description: Name of 1Password CLI executable
     env:
       type: object
       patternProperties:

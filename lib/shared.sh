@@ -16,7 +16,7 @@ function expandVariable() {
 function readField {
 	local opRef=$1
 
-	result=$(op2 read "${opRef}" --force --no-newline)
+	result=$($OP_EXE read "${opRef}" --force --no-newline)
 	[ -z "$result" ] && {
 		echo "Unable to read secret reference \"${opRef}\" from 1Password" 1>&2
 		exit 1

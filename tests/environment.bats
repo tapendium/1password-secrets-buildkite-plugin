@@ -30,6 +30,15 @@ function op() {
 	assert_output --partial "Missing OP_CONNECT_HOST"
 }
 
+@test "Runs when connect_host is provided" {
+	unset OP_CONNECT_HOST
+    export ${prefix}_CONNECT_HOST="localhost:8080"
+
+	run "$environment_hook"
+
+	assert_success
+}
+
 @test "Fails when OP token is missing" {
 	unset OP_CONNECT_TOKEN
 

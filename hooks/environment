@@ -4,6 +4,10 @@ set -eo pipefail
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+opExecutable="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_BIN:-op}"
+
+export OP_EXE="${opExecutable}"
+
 # shellcheck source=lib/shared.sh
 . "$CWD/../lib/shared.sh"
 
@@ -25,8 +29,8 @@ if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_DEBUG:-false}" =~ (true|on|1) ]]; th
 	set -x
 fi
 
-connectHost="${OP_CONNECT_HOST:-${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_HOST:-}}"
-connectToken="${OP_CONNECT_TOKEN:-${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN:-}}"
+connectHost="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_HOST:-$OP_CONNECT_HOST}"
+connectToken="${OP_CONNECT_TOKEN:-$BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN}"
 
 if [ -z "${connectHost}" ]; then
 	echo >&2 "Missing OP_CONNECT_HOST or connect_host"
