@@ -32,7 +32,7 @@ function op() {
 
 @test "Runs when connect_host is provided" {
 	unset OP_CONNECT_HOST
-    export ${prefix}_CONNECT_HOST="localhost:8080"
+	export ${prefix}_CONNECT_HOST="localhost:8080"
 
 	run "$environment_hook"
 
@@ -57,6 +57,18 @@ function op() {
 
 	assert_success
 	assert_output --partial "Reading secret at reference \"op://vault/item/field\" from 1Password into environment variable $exportName"
+}
+
+@test "Reads secret references with spaces" {
+	export ${prefix}_ENV_SECRET_A="op://vault name/item name/field name"
+
+	export -f op
+
+	run "$environment_hook"
+
+	assert_success
+	assert_output --partial "Reading secret at reference \"op://vault name/item name/field name\" from 1Password into environment variable $exportName"
+
 }
 
 @test "Parses out variable names for multiple secrets" {

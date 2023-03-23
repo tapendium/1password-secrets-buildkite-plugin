@@ -13,12 +13,12 @@ export OP_EXE="${opExecutable}"
 
 load_secret_into_env() {
 	local exportName=$1
-	local secretRef=$(expandVariable $2)
+	local secretRef=$(expandVariable "${2}")
 	local secretValue
 
 	echo "Reading secret at reference \"${secretRef}\" from 1Password into environment variable $exportName"
 
-    # Read value from vault using 1Password CLI
+	# Read value from vault using 1Password CLI
 	secretValue=$(readField "${secretRef}")
 
 	export "$exportName"="$secretValue"
@@ -47,10 +47,10 @@ export OP_CONNECT_TOKEN="${connectToken}"
 
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
-      # Read variable name for exported environment variable
-      exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
-      # Read reference to secret value
-      secretReference=${!name}
-      load_secret_into_env "$exportName" "$secretReference"
+		# Read variable name for exported environment variable
+		exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
+		# Read reference to secret value
+		secretReference=${!name}
+		load_secret_into_env "$exportName" "$secretReference"
 	fi
 done < <(env | sort)
