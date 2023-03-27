@@ -59,7 +59,7 @@ function getToken {
 	if ! result=$(aws secretsmanager get-secret-value \
 		--secret-id "${secretId}" \
 		--version-stage AWSCURRENT \
-        --output text \
+		--output text \
 		--query 'SecretString' 2>&1); then
 		echo "Unable to read secret value from Secrets Manager."
 		echo "${result}"

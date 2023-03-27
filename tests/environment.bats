@@ -16,7 +16,7 @@ function op() {
 }
 
 function getToken {
-    echo ${TOKEN_VALUE:-token}
+	echo ${TOKEN_VALUE:-token}
 }
 
 @test "Runs with no errors" {
@@ -45,7 +45,7 @@ function getToken {
 
 @test "Fails when both OP token and token reference are missing" {
 	unset OP_CONNECT_TOKEN
-    unset ${prefix}_CONNECT_TOKEN
+	unset ${prefix}_CONNECT_TOKEN
 
 	run "$environment_hook"
 
@@ -54,15 +54,15 @@ function getToken {
 }
 
 @test "Runs when connect_token is provided" {
-    unset OP_CONNECT_TOKEN
+	unset OP_CONNECT_TOKEN
 	export ${prefix}_ENV_SECRET_A="op://vault/item/field"
-    export ${prefix}_CONNECT_TOKEN=dummyarn
+	export ${prefix}_CONNECT_TOKEN=dummyarn
 	export -f op
-    export -f getToken
+	export -f getToken
 
-    run "$environment_hook"
+	run "$environment_hook"
 
-    assert_success
+	assert_success
 	assert_output --partial "Reading secret \"op://vault/item/field\" from 1Password into environment variable $exportName"
 }
 
