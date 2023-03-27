@@ -2,8 +2,8 @@ version: '2'
 
 services:
   lint:
-    image: buildkite/plugin-linter
-    command: ['--id', 'tapendium/1password']
+    image: buildkite/plugin-linter:latest
+    command: ['--id', 'tapendium/1password-secrets']
     volumes:
       - '.:/plugin:ro'
 
@@ -11,5 +11,3 @@ services:
     image: buildkite/plugin-tester
     volumes:
       - ".:/plugin:ro"
-
-

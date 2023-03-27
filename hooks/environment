@@ -4,43 +4,72 @@ set -eo pipefail
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+opExecutable="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_BIN:-op}"
+
+export OP_EXE="${opExecutable}"
+
 # shellcheck source=lib/shared.sh
 . "$CWD/../lib/shared.sh"
 
-# Generate session token if not currently set
-if [ -z "$OP_SESSION_TOKEN" ]; then
-	echo "Generating 1Password session token"
-    # Attempt session token generation up to 3 times with a jitter factor of 0.3
-	retry 3 0.3 generateSessionToken
-fi
-
 load_secret_into_env() {
 	local exportName=$1
-	local secretUuid=$2
-	local secretField=$(expandVariable $3)
+	local secretRef
 	local secretValue
 
-	echo "Reading item \"$secretUuid\" field \"$secretField\" from 1Password into environment variable $exportName"
+    secretRef=$(expandVariable "${2}")
 
-	secretValue=$(getField "$secretUuid" "$secretField")
+	echo "~~~ :unlock: Reading secret \"${secretRef}\" from 1Password into environment variable $exportName"
+
+	# Read value from vault using 1Password CLI
+	secretValue=$(readField "${secretRef}")
+
 	export "$exportName"="$secretValue"
 }
 
+if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_DEBUG:-false}" =~ (true|on|1) ]]; then
+	echo "~~~ :hammer: Enabling debug mode"
+	set -x
+fi
+
+connectHost="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_HOST:-$OP_CONNECT_HOST}"
+
+if [ -z "${connectHost}" ]; then
+	echo >&2 "Missing OP_CONNECT_HOST or connect_host"
+	exit 22
+fi
+
+# API token is either set directly as environment variable in OP_CONNECT_TOKEN or as AWS secrets manager secret
+tokenSecretRef="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN}"
+
+if [[ -z "${OP_CONNECT_TOKEN}" && -z "${tokenSecretRef}" ]]; then
+	echo >&2 "OP_CONNECT_TOKEN environment variable or connect_token field must be specified"
+	exit 1
+fi
+
+if [ -n "${OP_CONNECT_TOKEN}" ]; then
+	connectToken="${OP_CONNECT_TOKEN}"
+else
+	connectToken="$(getToken "${tokenSecretRef}")"
+fi
+
+if [ -z "${connectToken}" ]; then
+	echo >&2 "Missing connect_token"
+	exit 22
+fi
+
+export OP_CONNECT_HOST="${connectHost}"
+export OP_CONNECT_TOKEN="${connectToken}"
+
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
-		if [[ $name =~ (_SECRET_UUID)$ ]]; then
-			# get the export name from the key, e.g.
-			# env:
-			#   KEY_NAME:
-			#     secret-uuid: 'my-secret-uuid'
-			exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//' | sed 's/_SECRET_UUID$//')
-			secretUuid=${!name}
-			secretFieldName="BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_${exportName}_FIELD"
-			secretField=${!secretFieldName}
-		elif [[ $name =~ (_FIELD)$ ]]; then
-			# ignore this
-			continue
-		fi
-		load_secret_into_env "$exportName" "$secretUuid" "$secretField"
+		# Read variable name for exported environment variable
+        # shellcheck disable=SC2001
+		exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
+		# Read reference to secret value
+		secretReference=${!name}
+		load_secret_into_env "$exportName" "$secretReference"
 	fi
 done < <(env | sort)
+
+# Clear OP_CONNECT_TOKEN after reading secrets into environment
+unset OP_CONNECT_TOKEN
