@@ -13,8 +13,10 @@ export OP_EXE="${opExecutable}"
 
 load_secret_into_env() {
 	local exportName=$1
-	local secretRef=$(expandVariable "${2}")
+	local secretRef
 	local secretValue
+
+    secretRef=$(expandVariable "${2}")
 
 	echo "~~~ :unlock: Reading secret \"${secretRef}\" from 1Password into environment variable $exportName"
 
@@ -61,6 +63,7 @@ export OP_CONNECT_TOKEN="${connectToken}"
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
 		# Read variable name for exported environment variable
+        # shellcheck disable=SC2001
 		exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
 		# Read reference to secret value
 		secretReference=${!name}
