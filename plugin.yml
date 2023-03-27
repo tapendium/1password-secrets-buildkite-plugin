@@ -13,7 +13,7 @@ configuration:
       description: 1Password Connect Server host
     connect_token:
       type: string
-      description: 1Password Connect Server API token
+      description: SecretsManager Secret ARN for 1Password Connect Server API token
     bin:
       type: string
       description: Name of 1Password CLI executable

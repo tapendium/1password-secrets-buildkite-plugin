@@ -15,6 +15,10 @@ function op() {
 	echo ${SECRET_VALUE:-secret}
 }
 
+function getToken {
+    echo ${TOKEN_VALUE:-token}
+}
+
 @test "Runs with no errors" {
 	run "$environment_hook"
 
@@ -39,13 +43,27 @@ function op() {
 	assert_success
 }
 
-@test "Fails when OP token is missing" {
+@test "Fails when both OP token and token reference are missing" {
 	unset OP_CONNECT_TOKEN
+    unset ${prefix}_CONNECT_TOKEN
 
 	run "$environment_hook"
 
 	assert_failure
-	assert_output --partial "Missing OP_CONNECT_TOKEN"
+	assert_output --partial "OP_CONNECT_TOKEN environment variable or connect_token field must be specified"
+}
+
+@test "Runs when connect_token is provided" {
+    unset OP_CONNECT_TOKEN
+	export ${prefix}_ENV_SECRET_A="op://vault/item/field"
+    export ${prefix}_CONNECT_TOKEN=dummyarn
+	export -f op
+    export -f getToken
+
+    run "$environment_hook"
+
+    assert_success
+	assert_output --partial "Reading secret \"op://vault/item/field\" from 1Password into environment variable $exportName"
 }
 
 @test "Parses out variable names for 1 secret" {
@@ -56,7 +74,7 @@ function op() {
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading secret at reference \"op://vault/item/field\" from 1Password into environment variable $exportName"
+	assert_output --partial "Reading secret \"op://vault/item/field\" from 1Password into environment variable $exportName"
 }
 
 @test "Reads secret references with spaces" {
@@ -67,7 +85,7 @@ function op() {
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading secret at reference \"op://vault name/item name/field name\" from 1Password into environment variable $exportName"
+	assert_output --partial "Reading secret \"op://vault name/item name/field name\" from 1Password into environment variable $exportName"
 
 }
 
@@ -80,8 +98,8 @@ function op() {
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading secret at reference \"op://vault/a/field\" from 1Password into environment variable SECRET_A"
-	assert_output --partial "Reading secret at reference \"op://vault/b/field\" from 1Password into environment variable SECRET_B"
+	assert_output --partial "Reading secret \"op://vault/a/field\" from 1Password into environment variable SECRET_A"
+	assert_output --partial "Reading secret \"op://vault/b/field\" from 1Password into environment variable SECRET_B"
 }
 
 @test "Expands out environment variable in field name" {
@@ -93,5 +111,5 @@ function op() {
 	run "$environment_hook"
 
 	assert_success
-	assert_output --partial "Reading secret at reference \"op://vault/item/field\" from 1Password into environment variable SECRET_A"
+	assert_output --partial "Reading secret \"op://vault/item/field\" from 1Password into environment variable SECRET_A"
 }

@@ -16,7 +16,7 @@ load_secret_into_env() {
 	local secretRef=$(expandVariable "${2}")
 	local secretValue
 
-	echo "~~~ :unlock: Reading secret at reference \"${secretRef}\" from 1Password into environment variable $exportName"
+	echo "~~~ :unlock: Reading secret \"${secretRef}\" from 1Password into environment variable $exportName"
 
 	# Read value from vault using 1Password CLI
 	secretValue=$(readField "${secretRef}")
@@ -30,15 +30,28 @@ if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_DEBUG:-false}" =~ (true|on|1) ]]; th
 fi
 
 connectHost="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_HOST:-$OP_CONNECT_HOST}"
-connectToken="${OP_CONNECT_TOKEN:-$BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN}"
 
 if [ -z "${connectHost}" ]; then
 	echo >&2 "Missing OP_CONNECT_HOST or connect_host"
 	exit 22
 fi
 
+# API token is either set directly as environment variable in OP_CONNECT_TOKEN or as AWS secrets manager secret
+tokenSecretRef="${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CONNECT_TOKEN}"
+
+if [[ -z "${OP_CONNECT_TOKEN}" && -z "${tokenSecretRef}" ]]; then
+	echo >&2 "OP_CONNECT_TOKEN environment variable or connect_token field must be specified"
+	exit 1
+fi
+
+if [ -n "${OP_CONNECT_TOKEN}" ]; then
+	connectToken="${OP_CONNECT_TOKEN}"
+else
+	connectToken="$(getToken "${tokenSecretRef}")"
+fi
+
 if [ -z "${connectToken}" ]; then
-	echo >&2 "Missing OP_CONNECT_TOKEN or connect_token"
+	echo >&2 "Missing connect_token"
 	exit 22
 fi
 
@@ -54,3 +67,6 @@ while IFS='=' read -r name _; do
 		load_secret_into_env "$exportName" "$secretReference"
 	fi
 done < <(env | sort)
+
+# Clear OP_CONNECT_TOKEN after reading secrets into environment
+unset OP_CONNECT_TOKEN

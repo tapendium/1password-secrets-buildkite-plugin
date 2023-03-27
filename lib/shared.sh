@@ -1,7 +1,5 @@
 #!/bin/bash
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Expand variable if it starts with $ sign
 function expandVariable() {
 	if [[ "${1::1}" == "\$" ]]; then
@@ -21,7 +19,7 @@ function readField {
 		echo "Unable to read secret reference \"${opRef}\" from 1Password" 1>&2
 		exit 1
 	}
-    echo "${result}"
+	echo "${result}"
 }
 
 # retry <number-of-retries> <jitter-factor> <command>
@@ -49,4 +47,26 @@ function retry {
 			fi
 		}
 	done
+}
+
+# Fetch API token from Secret Manager.
+#
+# Assumes token is stored as plaintext
+function getToken {
+	secretId=$1
+	local result
+
+	if ! result=$(aws secretmanager get-secret-value \
+		--secret-id "${secretId}" \
+		--version-stage AWSCURRENT \
+		--query 'SecretString' 2>&1); then
+		echo "Unable to read secret value from Secrets Manager."
+		echo "${result}"
+	fi
+
+	[ -z "${result}" ] && {
+		echo "Unable to read secret value from Secrets Manager."
+	}
+
+	echo "${result}"
 }
