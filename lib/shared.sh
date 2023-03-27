@@ -56,7 +56,7 @@ function getToken {
 	secretId=$1
 	local result
 
-	if ! result=$(aws secretmanager get-secret-value \
+	if ! result=$(aws secretsmanager get-secret-value \
 		--secret-id "${secretId}" \
 		--version-stage AWSCURRENT \
 		--query 'SecretString' 2>&1); then
