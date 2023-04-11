@@ -10,7 +10,7 @@ It uses [1Password Connect Server](https://developer.1password.com/docs/ci-cd/) 
 steps:
   - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets#v2.0.0:
+      - tapendium/1password-secrets#v2.1.0:
           connect_host: http://secrets.services.local
           connect_token: arn:aws:secretsmanager:aws-region:1234567890:secret:api-token-secret-name
           env:
@@ -26,7 +26,7 @@ Connect Server host `OP_CONNECT_HOST` and/or API token `OP_CONNECT_TOKEN` may be
 steps:
   - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets#v2.0.0:
+      - tapendium/1password-secrets#v2.1.0:
           env:
             SECRET_A: "op://<vault>/<item>[/<section>]/<field>"
             SECRET_B: "op://production/database/password"
