@@ -17,6 +17,9 @@ configuration:
     bin:
       type: string
       description: Name of 1Password CLI executable
+    clear_token:
+      type: boolean
+      description: Clear OP_CONNECT_TOKEN environment variable on completion
     env:
       type: object
       patternProperties:

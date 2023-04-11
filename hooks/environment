@@ -16,7 +16,7 @@ load_secret_into_env() {
 	local secretRef
 	local secretValue
 
-    secretRef=$(expandVariable "${2}")
+	secretRef=$(expandVariable "${2}")
 
 	echo "~~~ :unlock: Reading secret \"${secretRef}\" from 1Password into environment variable $exportName"
 
@@ -63,7 +63,7 @@ export OP_CONNECT_TOKEN="${connectToken}"
 while IFS='=' read -r name _; do
 	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
 		# Read variable name for exported environment variable
-        # shellcheck disable=SC2001
+		# shellcheck disable=SC2001
 		exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
 		# Read reference to secret value
 		secretReference=${!name}
@@ -72,4 +72,7 @@ while IFS='=' read -r name _; do
 done < <(env | sort)
 
 # Clear OP_CONNECT_TOKEN after reading secrets into environment
-unset OP_CONNECT_TOKEN
+if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CLEAR_TOKEN:-true}" =~ (true|on|1) ]]; then
+	echo "~~~ :lock: Removing OP_CONNECT_TOKEN from environment"
+	unset OP_CONNECT_TOKEN
+fi
