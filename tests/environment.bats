@@ -113,3 +113,19 @@ function getToken {
 	assert_success
 	assert_output --partial "Reading secret \"op://vault/item/field\" from 1Password into environment variable SECRET_A"
 }
+
+@test "Clears OP_CONNECT_TOKEN on completion" {
+	run "$environment_hook"
+
+	assert_success
+	assert_output --partial "Removing OP_CONNECT_TOKEN from environment"
+}
+
+@test "Does not clear OP_CONNECT_TOKEN when clear_token is set to false" {
+	export ${prefix}_CLEAR_TOKEN="false"
+
+	run "$environment_hook"
+
+	assert_success
+	refute_output --partial "Removing OP_CONNECT_TOKEN from environment"
+}
