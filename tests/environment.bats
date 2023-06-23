@@ -129,3 +129,13 @@ function getToken {
 	assert_success
 	refute_output --partial "Removing OP_CONNECT_TOKEN from environment"
 }
+
+@test "Does not clear OP_CONNECT_TOKEN if file injection specified" {
+	export ${prefix}_CLEAR_TOKEN="true"
+	export ${prefix}_FILE_0_PATH="configfile"
+
+	run "$environment_hook"
+
+	assert_success
+	refute_output --partial "Removing OP_CONNECT_TOKEN from environment"
+}

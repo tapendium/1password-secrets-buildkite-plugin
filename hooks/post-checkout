@@ -11,21 +11,6 @@ export OP_EXE="${opExecutable}"
 # shellcheck source=lib/shared.sh
 . "$CWD/../lib/shared.sh"
 
-load_secret_into_env() {
-	local exportName=$1
-	local secretRef
-	local secretValue
-
-	secretRef=$(expandVariable "${2}")
-
-	echo "~~~ :unlock: Reading secret \"${secretRef}\" from 1Password into environment variable $exportName"
-
-	# Read value from vault using 1Password CLI
-	secretValue=$(readField "${secretRef}")
-
-	export "$exportName"="$secretValue"
-}
-
 if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_DEBUG:-false}" =~ (true|on|1) ]]; then
 	echo "~~~ :hammer: Enabling debug mode"
 	set -x
@@ -61,19 +46,14 @@ export OP_CONNECT_HOST="${connectHost}"
 export OP_CONNECT_TOKEN="${connectToken}"
 
 while IFS='=' read -r name _; do
-	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_) ]]; then
-		# Read variable name for exported environment variable
-		# shellcheck disable=SC2001
-		exportName=$(echo "${name}" | sed 's/^BUILDKITE_PLUGIN_1PASSWORD_SECRETS_ENV_//')
-		# Read reference to secret value
-		secretReference=${!name}
-		load_secret_into_env "$exportName" "$secretReference"
-	fi
+  if [[ $name =~  ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_FILE_[0-9]+_PATH)$ ]]; then
+    inputPath=${!name}
+    injectSecrets "$inputPath"
+  fi
 done < <(env | sort)
 
-# Clear OP_CONNECT_TOKEN after reading secrets into environment only if 
-# no file paths specified for secret injection
-if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CLEAR_TOKEN:-true}" =~ (true|on|1) ]] && [ -z "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_FILE_0_PATH}" ]; then
+# Clear OP_CONNECT_TOKEN after reading secrets
+if [[ "${BUILDKITE_PLUGIN_1PASSWORD_SECRETS_CLEAR_TOKEN:-true}" =~ (true|on|1) ]]; then
 	echo "~~~ :lock: Removing OP_CONNECT_TOKEN from environment"
 	unset OP_CONNECT_TOKEN
 fi

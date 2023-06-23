@@ -32,6 +32,18 @@ steps:
             SECRET_B: "op://production/database/password"
 ```
 
+### Injecting secrets into files
+
+Secrets can be [injected](https://developer.1password.com/docs/cli/reference/commands/inject) directly into files which include secret references.
+
+```yml
+steps:
+  - command: 'echo \$SECRET_A'
+    plugins:
+      - tapendium/1password-secrets#v2.1.0:
+          file:
+            - path: fileWithSecretReferences
+```
 
 ## Developing
 

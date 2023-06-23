@@ -26,6 +26,12 @@ configuration:
         ^[A-Z_]+$:
           type: string
           additionalProperties: false
-  required:
-    - env
+    file:
+      type: array
+      items:
+        type: object
+        properties:
+          path:
+            type: string
+            description: Path to config file with secret references
   additionalProperties: false
