@@ -10,7 +10,7 @@ It uses [1Password Connect Server](https://developer.1password.com/docs/ci-cd/) 
 steps:
   - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets#v2.1.0:
+      - tapendium/1password-secrets#v2.3.0:
           connect_host: http://secrets.services.local
           connect_token: arn:aws:secretsmanager:aws-region:1234567890:secret:api-token-secret-name
           env:
@@ -26,7 +26,7 @@ Connect Server host `OP_CONNECT_HOST` and/or API token `OP_CONNECT_TOKEN` may be
 steps:
   - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets#v2.1.0:
+      - tapendium/1password-secrets#v2.3.0:
           env:
             SECRET_A: "op://<vault>/<item>[/<section>]/<field>"
             SECRET_B: "op://production/database/password"
@@ -40,9 +40,23 @@ Secrets can be [injected](https://developer.1password.com/docs/cli/reference/com
 steps:
   - command: 'echo \$SECRET_A'
     plugins:
-      - tapendium/1password-secrets#v2.1.0:
+      - tapendium/1password-secrets#v2.3.0:
           file:
             - path: fileWithSecretReferences
+```
+
+### Injecting secrets into files with specified output file
+
+Secrets can be [injected](https://developer.1password.com/docs/cli/reference/commands/inject) into a template file containing secret references and written to a specified output file.
+
+```yml
+steps:
+  - command: 'echo \$SECRET_A'
+    plugins:
+      - tapendium/1password-secrets#v2.3.0:
+          file:
+            - path: fileWithSecretReferences
+              out: outputFileWithResolvedSecrets
 ```
 
 ## Developing

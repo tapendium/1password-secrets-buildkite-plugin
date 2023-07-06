@@ -34,4 +34,8 @@ configuration:
           path:
             type: string
             description: Path to config file with secret references
+          out:
+            type: string
+            description: Path of file to write injected template to
+        additionalProperties: false
   additionalProperties: false

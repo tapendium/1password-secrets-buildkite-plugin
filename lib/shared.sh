@@ -24,10 +24,11 @@ function readField {
 
 # Use op inject to replace secret placeholders in supplied file
 function injectSecrets {
-  local filePath=$1
+	local filePath=$1
+	local outFile=${2:-$1}
 
-  echo "~~~ :unlock: Injecting secrets into \"${filePath}\" from 1Password"
-  $OP_EXE inject --in-file "${filePath}" --out-file "${filePath}"  --force
+	echo "~~~ :unlock: Injecting secrets into \"${outFile}\" from 1Password"
+	$OP_EXE inject --in-file "${filePath}" --out-file "${outFile}" --force
 }
 
 # Fetch API token from Secret Manager.
