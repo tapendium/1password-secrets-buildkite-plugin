@@ -46,10 +46,13 @@ export OP_CONNECT_HOST="${connectHost}"
 export OP_CONNECT_TOKEN="${connectToken}"
 
 while IFS='=' read -r name _; do
-  if [[ $name =~  ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_FILE_[0-9]+_PATH)$ ]]; then
-    inputPath=${!name}
-    injectSecrets "$inputPath"
-  fi
+	if [[ $name =~ ^(BUILDKITE_PLUGIN_1PASSWORD_SECRETS_FILE_[0-9]+_PATH)$ ]]; then
+		inputPath=${!name}
+		outEnv=$(echo "${name}" | sed 's/_PATH$/_OUT/')
+		outPath=${!outEnv}
+
+		injectSecrets "$inputPath" "$outPath"
+	fi
 done < <(env | sort)
 
 # Clear OP_CONNECT_TOKEN after reading secrets
